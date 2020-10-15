@@ -12,14 +12,19 @@ class TCPServer:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((self.bind_ip, self.bind_port))
 
+        # Inicializando variáveis locais da conexão do cliente
+        self.client = None
+        self.cli_address = None
+
         print("-- Servidor escutando na porta: " + str(self.bind_port) + " e IP: " + str(self.bind_ip) + "\n")
 
     # Método para tratar cada caso de cliente que esteja requisitando algo para o servidor
-    def handle_client(self, client):
-        request = client.recv(1024)
+    def handle_client(self):
+        request = self.client.recv(1024)
 
-        client.send("Olár!")
-        client.close()
+        # Enviando uma mensagem para o cliente
+        self.client.send("Olár!")
+        self.client.close()  # Fechando coenxão após o tratamento de sua requisição
 
     # Método que vai fazer o servidor executar e esperar por requisições
     def run_server(self):
@@ -34,12 +39,12 @@ class TCPServer:
             try:  # Tenta aceitar a coenxão de um cliente
 
                 # Espera por alguma conexão do cliente e tenta aceitá-la
-                connection, cli_address = self.server.accept()
+                self.client, self.cli_address = self.server.accept()
 
-                print("Cliente conectado! Seu endereço: " + str(cli_address[0]) + str(cli_address[1]))
+                print("Cliente conectado! Seu endereço: " + str(self.cli_address[0]) + str(self.cli_address[1]))
 
                 # Criando uma thread para tratar o novo cliente
-                client_thread = threading.Thread(target=self.handle_client, args=(connection,))
+                client_thread = threading.Thread(target=self.handle_client, args=(self.client,))
                 client_thread.start()
 
             # TODO fazer uma mensagem de erro mais formalizada para cada caso de erro
