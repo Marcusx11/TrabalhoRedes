@@ -1,8 +1,6 @@
 import socket
-import threading
 import sys
-
-print_lock = threading.Lock()
+from FTP import FTPThread
 
 
 class Server:
@@ -21,38 +19,16 @@ class Server:
         print("> Servidor escutando na porta: {} e IP {}".format(
             self.bind_port, self.bind_ip))
 
-    def handle_client(self,  client):
-        """
-        Trata cada caso de cliente que esteja requisitando algo para o servidor
-        """
-        while True:
-            data = client.recv(1024)
-
-            if not data:
-                print('Bye')
-                print_lock.release()
-                break
-
-            print("Thread nº: " + str(self.thread_cont))
-
-            # Retorna a string invertida
-            data = data[::-1]
-
-            client.sendall(data)
-            self.thread_cont = self.thread_cont + 1
-
-        # Fechando coenxão após o tratamento de sua requisição
-        client.close()
-
-    # Método que vai fazer o servidor executar e esperar por requisições
     def run(self):
+        """
+        Método que vai fazer o servidor executar e esperar por requisições
+        """
         print("Servidor esperando por conexão...\n")
 
         is_running = True
-        while is_running:
 
-            # Tenta aceitar a coenxão de um cliente
-            try:
+        while is_running:
+            try:  # Tenta aceitar a coenxão de um cliente
 
                 # Espera por alguma conexão do cliente e tenta aceitá-la
                 client, addr = self.server.accept()
@@ -60,21 +36,17 @@ class Server:
                 print("Cliente conectado! Seu endereço: {}:{}".format(
                     addr[0], addr[1]))
 
-                # Criando uma thread para tratar o novo cliente
-                client_thread = threading.Thread(
-                    target=self.handle_client,
-                    args=(client, ))
-
-                client_thread.start()
+                ftp = FTPThread(client)
+                ftp.run()
 
             except KeyboardInterrupt:
+                client.close()
                 sys.exit()
-                client_thread._stop()
 
             # TODO fazer uma mensagem de erro mais formalizada para cada caso de erro
             # except EOFError or FileNotFoundError or IOError or ConnectionError:
             except:
-                print("Ocorreu algum erro na requisição do cliente...")
+                print("SERVER.PY > Ocorreu algum erro na requisição do cliente...")
                 client.close()
 
 

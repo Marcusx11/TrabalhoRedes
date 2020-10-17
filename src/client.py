@@ -12,7 +12,7 @@ class Client:
         self.server.connect((self.bind_ip, self.bind_port))
 
     def run(self):
-        message = "Hello World"
+        message = "DELE arquivo"
 
         while True:
             self.server.sendall(message.encode('ascii'))
