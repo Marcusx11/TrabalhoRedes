@@ -1,5 +1,6 @@
 import socket
 import threading
+import sys
 
 print_lock = threading.Lock()
 
@@ -65,6 +66,10 @@ class Server:
                     args=(client, ))
 
                 client_thread.start()
+
+            except KeyboardInterrupt:
+                sys.exit()
+                client_thread._stop()
 
             # TODO fazer uma mensagem de erro mais formalizada para cada caso de erro
             # except EOFError or FileNotFoundError or IOError or ConnectionError:
