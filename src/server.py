@@ -27,6 +27,8 @@ class Server:
 
         is_running = True
 
+        client = None
+
         while is_running:
             try:  # Tenta aceitar a coenxão de um cliente
 

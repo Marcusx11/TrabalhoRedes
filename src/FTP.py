@@ -73,6 +73,9 @@ class FTPThread:
         COMMANDS[request[0]](request)
 
     def run(self):
+
+        client_thread = None
+
         while True:
             try:
                 request = self.client.recv(1024)
