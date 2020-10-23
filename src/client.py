@@ -7,24 +7,41 @@ class Client:
         self.bind_ip = bind_ip
         self.bind_port = bind_port
 
-        # Conectando o Socket TCP/IP
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((self.bind_ip, self.bind_port))
+    def __connect_socket(self):
+        # Tentando  conectar com o servidor TCP/IP
+        try:
+            self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server.connect((self.bind_ip, self.bind_port))
+        except:
+            print('Não foi possivel realizar conexão com {}:{}'.format(
+                self.bind_ip, self.bind_port))
+            quit()
+
+    def __desconnect_socket(self):
+        print("A conexão com {}:{} foi encerrada".format(
+            self.bind_ip, self.bind_port))
+        self.server.close()
+        quit()
 
     def run(self):
-        message = "DELE arquivo"
+        self.__connect_socket()
 
         while True:
-            self.server.sendall(message.encode('ascii'))
+            try:
+                cmd = input('> ')
+                self.server.sendall(cmd.encode())
 
-            data = self.server.recv(1024)
-            print('Received from the server :', str(data.decode('ascii')))
+                if (cmd[:4].upper() == 'QUIT'):
+                    self.__desconnect_socket()
 
-            ans = input('\nDo you want to continue(y/n) :')
-            if ans == 'y':
-                continue
-            else:
-                break
+                data = self.server.recv(1024)
+
+                if data:
+                    print('Received from the server :',
+                          str(data.decode('utf-8')))
+
+            except KeyboardInterrupt:
+                self.__desconnect_socket()
 
         self.server.close()
 
