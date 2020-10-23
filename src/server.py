@@ -1,6 +1,7 @@
 import socket
 import sys
 from FTP import FTPThread
+import threading
 
 
 class Server:
@@ -9,44 +10,60 @@ class Server:
         self.bind_port = bind_port
         self.thread_cont = 0
 
-        # Criando o Socket TCP/IP
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind((self.bind_ip, self.bind_port))
+    def __create_socket(self):
+        try:
+            # Criando o Socket TCP/IP
+            self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        # Faz o servidor atender até 5 conexões simultaneas
-        self.server.listen(5)
+            # A opção SO_REUSEADDR é utilizada para garantir que a proxima
+            # conexão utilize o mesmo socket caso o mesmo estiver aberto
+            # Para mais informações consultar o card Links e refencia no Trello
+            self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.server.bind((self.bind_ip, self.bind_port))
 
-        print("> Servidor escutando na porta: {} e IP {}".format(
-            self.bind_port, self.bind_ip))
+            # Faz o servidor atender até 5 conexões simultaneas
+            self.server.listen(5)
+
+            print("Servidor escutando na porta: {} e IP {}".format(
+                self.bind_port, self.bind_ip))
+        except OSError:
+            print('O endereço {}:{} já esta sendo utilizado.'.format(
+                self.bind_port, self.bind_ip))
+            quit()
 
     def run(self):
         """
         Método que vai fazer o servidor executar e esperar por requisições
         """
-        print("Servidor esperando por conexão...\n")
+        self.__create_socket()
 
-        is_running = True
-
-        while is_running:
+        while True:
             try:  # Tenta aceitar a coenxão de um cliente
 
                 # Espera por alguma conexão do cliente e tenta aceitá-la
                 client, addr = self.server.accept()
 
-                print("Cliente conectado! Seu endereço: {}:{}".format(
+                if not client:
+                    break
+
+                print("\nCliente conectado! Seu endereço: {}:{}".format(
                     addr[0], addr[1]))
 
-                ftp = FTPThread(client)
-                ftp.run()
+                ftp = FTPThread(client, addr[0], addr[1])
+
+                # Thread daemon é encerrada junto com a thread principal
+                ftp.daemon = True
+                ftp.start()
 
             except KeyboardInterrupt:
-                client.close()
-                sys.exit()
+                self.server.close()
+                quit()
 
             # TODO fazer uma mensagem de erro mais formalizada para cada caso de erro
             # except EOFError or FileNotFoundError or IOError or ConnectionError:
-            except:
+            except Exception as e:
                 print("SERVER.PY > Ocorreu algum erro na requisição do cliente...")
+                print(str(e))
                 client.close()
 
 
