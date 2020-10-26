@@ -10,7 +10,7 @@ class FTPThread(Thread):
         self.client_ip = client_ip
         self.client_port = client_port
         self.thread = None
-
+        print("FTP")
         self.COMMANDS = {
             'RETR': self.__RETR,
             'STOP': self.__STOR,
