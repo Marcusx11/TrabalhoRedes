@@ -43,8 +43,7 @@ class Client:
             except KeyboardInterrupt:
                 self.__desconnect_socket()
 
-            finally:
-                self.server.close()
+        self.server.close()
 
 
 if __name__ == "__main__":

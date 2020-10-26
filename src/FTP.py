@@ -47,7 +47,7 @@ class FTPThread(Thread):
 
         f_path = os.path.join(os.getcwd(), "server", path)
 
-        f_read = open(f_path, "rb")
+        f_read = None
 
         try:
             # Abrindo arquivo
@@ -58,15 +58,13 @@ class FTPThread(Thread):
 
             self.client.sendall(b'Download do arquivo completo')
 
+            f_read.close()
+
         except FileNotFoundError:
             self.client.sendall(b'ERRO Arquivo nao encontrado')
-            self.client.close()
-            return
 
-        finally:
-            f_read.close()
-            self.client.close()
-            return
+        # Retornando após terminar o download do arquivo
+        return
 
     def __STOR(self, cmd: list):
         """Envia uma cópia do arquivo especificado (upload para o servidor)."""
@@ -125,7 +123,7 @@ class FTPThread(Thread):
                 if cmd[0] not in self.COMMANDS:
                     err = '{} não é um comando valido.'.format(cmd[0])
                     self.client.sendall(err.encode('utf-8'))
-                    continue
+                    break
 
                 cmd[0] = cmd[0]
                 self.COMMANDS[cmd[0]](cmd)
@@ -136,5 +134,4 @@ class FTPThread(Thread):
                 break
                 # self.thread.join()
 
-            finally:
-                self.client.close()
+        self.client.close()
