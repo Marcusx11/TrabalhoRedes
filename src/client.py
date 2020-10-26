@@ -36,14 +36,15 @@ class Client:
 
                 data = self.server.recv(1024)
 
-                if data:
-                    print('Received from the server :',
-                          str(data.decode('utf-8')))
+                """ if data:
+                    # print('Received from the server :',
+                          # data.decode('utf-8')) """
 
             except KeyboardInterrupt:
                 self.__desconnect_socket()
 
-        self.server.close()
+            finally:
+                self.server.close()
 
 
 if __name__ == "__main__":

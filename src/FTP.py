@@ -1,3 +1,4 @@
+import os
 from threading import Thread
 import sys
 import socket
@@ -12,25 +13,65 @@ class FTPThread(Thread):
         self.thread = None
 
         self.COMMANDS = {
+            # Primeira versão dos comandos
             'RETR': self.__RETR,
-            'STOP': self.__STOR,
+            'STOR': self.__STOR,
             'DELE': self.__DELE,
             'MKD': self.__MKD,
             'NLST': self.__NLST,
             'LIST': self.__LIST,
             'QUIT': self.__QUIT,
             'HELP': self.__HELP,
+
+            # Versão alternativa
+            'get': self.__RETR,
+            'put': self.__STOR,
+            'rm': self.__DELE,
+            'mkdir': self.__MKD,
+            'ls': self.__NLST,
+            'lsl': self.__LIST,
+            'exit': self.__QUIT,
+            '?': self.__HELP
         }
 
     def __RETR(self, cmd: list):
         """Obtém uma cópia do arquivo especificado (download para o cliente)."""
         print('RETR')
-        self.client.sendall(b'RETR')
+
+        if not cmd[1]:
+            self.client.sendall(b'ERRO Parametro do caminho do arquivo nao encontrado')
+            return
+
+        # Pegando-se o caminho do arquivo
+        path = cmd[1]
+
+        f_path = os.path.join(os.getcwd(), "server", path)
+
+        f_read = open(f_path, "rb")
+
+        try:
+            # Abrindo arquivo
+            f_read = open(f_path, "rb")
+            data = f_read.read(1024)  # Lendo de 1024 em 1024 bytes
+
+            self.client.sendall(data)
+
+            self.client.sendall(b'Download do arquivo completo')
+
+        except FileNotFoundError:
+            self.client.sendall(b'ERRO Arquivo nao encontrado')
+            self.client.close()
+            return
+
+        finally:
+            f_read.close()
+            self.client.close()
+            return
 
     def __STOR(self, cmd: list):
         """Envia uma cópia do arquivo especificado (upload para o servidor)."""
         print('STOR')
-        self.client.sendall(b'STOP')
+        self.client.sendall(b'STOR')
 
     def __DELE(self, cmd: list):
         """Apaga um arquivo"""
@@ -79,12 +120,14 @@ class FTPThread(Thread):
                 request = self.client.recv(1024)
                 cmd = request.decode('utf-8').split(" ")
 
+                print(cmd)
+
                 if cmd[0] not in self.COMMANDS:
                     err = '{} não é um comando valido.'.format(cmd[0])
                     self.client.sendall(err.encode('utf-8'))
-                    break
+                    continue
 
-                cmd[0] = cmd[0].upper()
+                cmd[0] = cmd[0]
                 self.COMMANDS[cmd[0]](cmd)
 
             except Exception as e:
@@ -92,4 +135,6 @@ class FTPThread(Thread):
                 print(str(e))
                 break
                 # self.thread.join()
-        self.client.close()
+
+            finally:
+                self.client.close()
