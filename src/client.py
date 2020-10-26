@@ -29,9 +29,9 @@ class Client:
         while True:
             try:
                 cmd = input('> ')
-                self.server.sendall(cmd.encode())
+                self.server.sendall(cmd.encode().strip())
 
-                if (cmd[:4].upper() == 'QUIT'):
+                if cmd[:4].upper() == 'QUIT':
                     self.__desconnect_socket()
 
                 data = self.server.recv(1024)

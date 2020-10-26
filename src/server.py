@@ -36,6 +36,7 @@ class Server:
         Método que vai fazer o servidor executar e esperar por requisições
         """
         self.__create_socket()
+        client = None
 
         while True:
             try:  # Tenta aceitar a coenxão de um cliente
@@ -49,11 +50,11 @@ class Server:
                 print("\nCliente conectado! Seu endereço: {}:{}".format(
                     addr[0], addr[1]))
 
-                ftp = FTPThread(client, addr[0], addr[1])
+                ftp = FTPThread(client)
 
                 # Thread daemon é encerrada junto com a thread principal
                 ftp.daemon = True
-                ftp.start()
+                ftp.run()
 
             except KeyboardInterrupt:
                 self.server.close()
