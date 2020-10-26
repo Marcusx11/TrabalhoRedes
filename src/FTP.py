@@ -1,26 +1,13 @@
-from threading import Thread
+import threading
 import sys
 import socket
 
+print_lock = threading.Lock()
 
-class FTPThread(Thread):
-    def __init__(self, client: socket.socket, client_ip, client_port):
-        super().__init__()
+
+class FTPThread:
+    def __init__(self, client: socket.socket):
         self.client = client
-        self.client_ip = client_ip
-        self.client_port = client_port
-        self.thread = None
-
-        self.COMMANDS = {
-            'RETR': self.__RETR,
-            'STOP': self.__STOR,
-            'DELE': self.__DELE,
-            'MKD': self.__MKD,
-            'NLST': self.__NLST,
-            'LIST': self.__LIST,
-            'QUIT': self.__QUIT,
-            'HELP': self.__HELP,
-        }
 
     def __RETR(self, cmd: list):
         """Obtém uma cópia do arquivo especificado (download para o cliente)."""
@@ -57,13 +44,8 @@ class FTPThread(Thread):
 
     def __QUIT(self, cmd: list):
         """Desconecta"""
-        try:
-            self.client.sendall(b'Encerrando conexao com o servidor')
-        finally:
-            print('Fechando a conexão com o cliente {}:{}'.format(
-                self.client_ip, self.client_port))
-            self.client.close()
-            quit()
+        print('QUIT')
+        self.client.sendall(b'QUIT')
 
     def __HELP(self, cmd: list):
         """
@@ -73,26 +55,39 @@ class FTPThread(Thread):
         print('HELP')
         self.client.sendall(b'HELP')
 
+    def __select_command(self, request: str):
+        request = request.strip().split(" ")
+
+        COMMANDS = {
+            'RETR': self.__RETR,
+            'STOP': self.__STOR,
+            'DELE': self.__DELE,
+            'MKD': self.__MKD,
+            'NLST': self.__NLST,
+            'LIST': self.__LIST,
+            'QUIT': self.__QUIT,
+            'HELP': self.__HELP,
+        }
+
+        # CMD <option>
+        COMMANDS[request[0]](request)
+
     def run(self):
-
-        client_thread = None
-
         while True:
             try:
                 request = self.client.recv(1024)
-                cmd = request.decode('utf-8').split(" ")
-
-                if cmd[0] not in self.COMMANDS:
-                    err = '{} não é um comando valido.'.format(cmd[0])
-                    self.client.sendall(err.encode('utf-8'))
+                if not request:
+                    print('Bye')
+                    print_lock.release()
                     break
 
-                cmd[0] = cmd[0].upper()
-                self.COMMANDS[cmd[0]](cmd)
+                client_thread = threading.Thread(
+                    target=self.__select_command, args=(request.decode('ascii'),))
+                client_thread.start()
 
-            except Exception as e:
-                print("Ocorreu algum erro na requisição do cliente...")
-                print(str(e))
+            except:
+                print("FTP > Ocorreu algum erro na requisição do cliente...")
+                client_thread._stop()
                 break
-                # self.thread.join()
+
         self.client.close()
