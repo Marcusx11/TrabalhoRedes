@@ -7,6 +7,18 @@ class Client:
         self.bind_ip = bind_ip
         self.bind_port = bind_port
 
+        self.COMMANDS = {
+            'MKD': self.__MKDIR,
+            'MKDIR': self.__MKDIR
+        }
+
+    def __MKDIR(self, cmd: list):
+        print(cmd)
+        self.server.sendall(cmd.encode())
+
+    def __RMD(self, cmd: list):
+        self.server.sendall(cmd.encode())
+
     def __connect_socket(self):
         # Tentando  conectar com o servidor TCP/IP
         try:
@@ -29,16 +41,17 @@ class Client:
         while True:
             try:
                 cmd = input('> ')
-                self.server.sendall(cmd.encode().strip())
-
+                cmd_splited = cmd.split(' ')[0]
+                # self.server.sendall(cmd.encode().strip())
+                # self.COMMANDS[cmd_splited.upper()](cmd)
+                self.server.sendall(cmd.encode())
                 if cmd[:4].upper() == 'QUIT':
                     self.__desconnect_socket()
 
                 data = self.server.recv(1024)
 
-                """ if data:
-                    # print('Received from the server :',
-                          # data.decode('utf-8')) """
+                if data:
+                    print(str(data.decode('utf-8')))
 
             except KeyboardInterrupt:
                 self.__desconnect_socket()

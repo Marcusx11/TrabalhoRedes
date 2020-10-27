@@ -50,7 +50,7 @@ class Server:
                 print("\nCliente conectado! Seu endereço: {}:{}".format(
                     addr[0], addr[1]))
 
-                ftp = FTPThread(client, addr[0], addr[1])
+                ftp = FTPThread(client)
 
                 # Thread daemon é encerrada junto com a thread principal
                 ftp.daemon = True
