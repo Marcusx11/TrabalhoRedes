@@ -5,8 +5,6 @@ import shutil
 from pathlib import Path
 import socket
 
-print_lock = threading.Lock()
-
 
 class FTPThread:
     def __init__(self, client: socket.socket):
@@ -70,8 +68,16 @@ class FTPThread:
 
     def __NLST(self, cmd: list):
         """Lista os nomes dos arquivos de um diretório."""
-        print('NLST')
-        self.client.sendall(b'NLIST')
+        path = cmd[4:].strip()
+        dirname = os.path.join(self.cwd, path)
+
+        items = os.listdir(dirname)
+
+        if items:
+            dir_list = "\n".join(items)
+            self.client.sendall(dir_list.encode())
+        else:
+            self.client.sendall('Diretório vazio'.encode('utf-8'))
 
     def __LIST(self, cmd: list):
         """
@@ -100,15 +106,17 @@ class FTPThread:
             'STOP': self.__STOR,
             'DELE': self.__DELE,
             'MKD': self.__MKD,
+            'MKDIR': self.__MKD,
             'RMD': self.__RMD,
             'NLST': self.__NLST,
             'LIST': self.__LIST,
             'QUIT': self.__QUIT,
+            'EXIT': self.__QUIT,
             'HELP': self.__HELP,
         }
 
         # CMD <option>
-        cmd = request[:4].strip().upper()
+        cmd = request.split()[0].upper()
         COMMANDS[cmd](request)
 
     def run(self):
@@ -122,7 +130,6 @@ class FTPThread:
 
                 if not request:
                     print('Bye')
-                    print_lock.release()
                     break
 
                 client_thread = threading.Thread(
