@@ -1,5 +1,6 @@
 import threading
 import sys
+import os
 import shutil
 from pathlib import Path
 import socket
@@ -10,7 +11,7 @@ print_lock = threading.Lock()
 class FTPThread:
     def __init__(self, client: socket.socket):
         self.client = client
-        self.path = 'src/server/files/'
+        self.cwd = os.getcwd() + '/src/server/storage/'  # current working directory
 
     def __RETR(self, cmd: list):
         """Obtém uma cópia do arquivo especificado (download para o cliente)."""
@@ -27,28 +28,45 @@ class FTPThread:
         print('DELE')
         self.client.sendall(b'DELE')
 
-    def __MKD(self, cmd: list):
+    def __MKD(self, cmd: str):
         """Cria um diretório."""
+
+        path = cmd[4:].strip()
+        dirname = os.path.join(self.cwd, path)
+
         try:
-            Path(self.path + cmd[1]).mkdir(parents=True, exist_ok=False)
+            if not path:
+                self.client.sendall(b'Argumento faltando <dirname>')
+            else:
+                Path(dirname).mkdir(parents=True, exist_ok=False)
+
         except FileExistsError:
-            msg = 'O caminho "{}" já existe.'.format(cmd[1])
-            print(FileExistsError)
+            msg = 'O caminho "{}" já existe.'.format(path)
             self.client.sendall(msg.encode())
 
-        msg = '"{}" foi criado com sucesso!'.format(cmd[1])
-        self.client.sendall(msg.encode())
+        finally:
+            msg = '"{}" foi criado com sucesso!'.format(path)
+            self.client.sendall(msg.encode())
 
-    def __RMD(self, cmd: list):
+    def __RMD(self, cmd: str):
+        """Delete um diretório junto com todos os seus arquivos"""
+
+        path = cmd[4:].strip()
+        dirname = os.path.join(self.cwd, path)
+
         try:
-            shutil.rmtree(self.path + cmd[1])
+            if not path:
+                self.client.sendall(b'Argumento faltando <dirname>')
+            else:
+                shutil.rmtree(dirname)
 
         except FileNotFoundError:
-            msg = '"{}" não foi encontrado'.format(cmd[1])
+            msg = '"{}" não foi encontrado'.format(path)
             self.client.sendall(msg.encode())
 
-        msg = '"{}" foi excluido com sucesso!'.format(cmd[1])
-        self.client.sendall(msg.encode())
+        finally:
+            msg = '"{}" foi excluido com sucesso!'.format(path)
+            self.client.sendall(msg.encode())
 
     def __NLST(self, cmd: list):
         """Lista os nomes dos arquivos de um diretório."""
@@ -77,8 +95,6 @@ class FTPThread:
         self.client.sendall(b'HELP')
 
     def __select_command(self, request: str):
-        request = request.strip().split(" ")
-
         COMMANDS = {
             'RETR': self.__RETR,
             'STOP': self.__STOR,
@@ -92,10 +108,10 @@ class FTPThread:
         }
 
         # CMD <option>
-        COMMANDS[request[0].upper()](request)
+        cmd = request[:4].strip().upper()
+        COMMANDS[cmd](request)
 
     def run(self):
-
         client_thread = None
 
         while True:
