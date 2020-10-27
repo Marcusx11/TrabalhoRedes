@@ -1,4 +1,5 @@
 src/__pycache__
+src/*.sh
 src/server/__pycache__
 src/client/__pycache__
 
