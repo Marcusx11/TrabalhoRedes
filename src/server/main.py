@@ -5,8 +5,8 @@ import threading
 
 
 class Server:
-    def __init__(self, bind_ip='localhost', bind_port=80):
-        self.bind_ip = bind_ip
+    def __init__(self, host_name="localhost", bind_port=80):
+        self.bind_ip = socket.gethostbyname(host_name)
         self.bind_port = bind_port
         self.thread_cont = 0
 

@@ -4,15 +4,46 @@ import os
 import shutil
 from pathlib import Path
 import socket
+import tqdm
+
+BUFFER_SIZE = 4096  # Envia 4096 bytes por vez
 
 
 class FTPThread:
     def __init__(self, client: socket.socket):
         self.client = client
-        self.cwd = os.getcwd() + '/src/server/storage/'  # current working directory
+        self.cwd = os.path.join(os.getcwd(), "storage")  # current working directory
 
     def __RETR(self, cmd: list):
         """Obtém uma cópia do arquivo especificado (download para o cliente)."""
+        path = cmd[4:].strip()
+        dir_name = os.path.join(self.cwd, path)  # Pegando-se caminho do arquivo
+        file_size = os.path.getsize("storage\\poseidon.jpg")  # Pegando-se tamanho do arquivo
+
+        try:
+            if not path:
+                self.client.sendall(b'Argumento faltando <pathname>')
+            else:
+                file = open(dir_name, "rb")
+
+                # Barra de progresso do envio do arquivo
+                progress = tqdm.tqdm(range(file_size), f"Sending {dir_name}", unit="B", unit_scale=True,
+                                     unit_divisor=1024)
+
+                for _ in progress:
+                    print(progress)
+                    byes_read = file.read(BUFFER_SIZE)
+                    if not byes_read:
+                        # Fim da tranmissão
+                        break
+
+                    self.client.sendall(byes_read)
+
+                    progress.update(len(byes_read))
+
+        except FileNotFoundError:
+            self.client.sendall(b'Arquivo nao encontrado')
+
         print('RETR')
         self.client.sendall(b'RETR')
 

@@ -1,5 +1,8 @@
 import socket
 import sys
+import time
+
+BUFFER_SIZE = 4096
 
 
 class Client:
@@ -23,22 +26,62 @@ class Client:
         self.server.close()
         quit()
 
+    def __receive_data(self, timeout=2):
+        self.server.setblocking(True)
+        total_data = []
+
+        # Começando o tempo
+        begin_time = time.time()
+
+        # Pegando-se os dados
+        while True:
+            # Sai do loop após o timeout e com dados
+            if total_data and time.time() - begin_time > timeout:
+                break
+
+            # Sai do loop após esperar o dobro do timeout, sem dados
+            elif time.time() - begin_time > timeout * 2:
+                break
+
+            # Recebendo os dados
+            try:
+                data = self.server.recv(BUFFER_SIZE)
+                if data:
+                    total_data.append(data)
+                    begin_time = time.time()
+                else:
+                    # Sleep indicando um intervalo
+                    time.sleep(0.1)
+
+            except:
+                pass
+
+        # Retornando o vetor de bytes
+        return b''.join(total_data)
+
     def run(self):
         self.__connect_socket()
 
         while True:
             try:
                 cmd = input('> ')
-                cmd_splited = cmd.split(' ')[0].upper()
+                cmd_splited = cmd.split(' ')[0]
 
                 self.server.sendall(cmd.encode())
                 if cmd_splited == 'QUIT':
                     self.__desconnect_socket()
 
-                data = self.server.recv(1024)
+                final_data = self.__receive_data()
 
-                if data:
-                    print(str(data.decode('utf-8')))
+                if final_data:
+                    file_name = input("Digite o nome e a extensão do arquivo a ser recebido: ").strip()
+                    file = open(file_name, "wb")
+                    file.write(final_data)
+
+                    # print(str(data.decode()))
+                    print("oba!")
+
+                    file.close()
 
             except KeyboardInterrupt:
                 self.__desconnect_socket()
