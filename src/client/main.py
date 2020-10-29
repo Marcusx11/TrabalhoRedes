@@ -6,8 +6,8 @@ BUFFER_SIZE = 4096
 
 
 class Client:
-    def __init__(self, bind_ip='localhost', bind_port=80):
-        self.bind_ip = bind_ip
+    def __init__(self, host_name='localhost', bind_port=80):
+        self.bind_ip = socket.gethostbyname(host_name)
         self.bind_port = bind_port
 
     def __connect_socket(self):
@@ -26,38 +26,32 @@ class Client:
         self.server.close()
         quit()
 
-    def __receive_data(self, timeout=2):
-        self.server.setblocking(True)
-        total_data = []
+    def __receive_data(self):
 
-        # Começando o tempo
-        begin_time = time.time()
+        # file_size = int.from_bytes(self.server.recv(BUFFER_SIZE), "big")
 
-        # Pegando-se os dados
-        while True:
-            # Sai do loop após o timeout e com dados
-            if total_data and time.time() - begin_time > timeout:
-                break
+        # print(file_size)
 
-            # Sai do loop após esperar o dobro do timeout, sem dados
-            elif time.time() - begin_time > timeout * 2:
-                break
+        # Tentando abrir o arquivo
+        file_name = input("Digite o nome e a extensão do arquivo a ser recebido: ").strip()
+        file = None
 
-            # Recebendo os dados
-            try:
+        # Tentando pegar os dados
+        try:
+            file = open(file_name, "wb")
+            # Pegando-se os dados
+            while True:
                 data = self.server.recv(BUFFER_SIZE)
-                if data:
-                    total_data.append(data)
-                    begin_time = time.time()
-                else:
-                    # Sleep indicando um intervalo
-                    time.sleep(0.1)
+                if not data:
+                    break
 
-            except:
-                pass
+                file.write(data)
 
-        # Retornando o vetor de bytes
-        return b''.join(total_data)
+        except Exception as e:
+            self.server.sendall(b'Nao foi possivel criar o arquivo')
+
+        finally:
+            file.close()
 
     def run(self):
         self.__connect_socket()
@@ -71,17 +65,7 @@ class Client:
                 if cmd_splited == 'QUIT':
                     self.__desconnect_socket()
 
-                final_data = self.__receive_data()
-
-                if final_data:
-                    file_name = input("Digite o nome e a extensão do arquivo a ser recebido: ").strip()
-                    file = open(file_name, "wb")
-                    file.write(final_data)
-
-                    # print(str(data.decode()))
-                    print("oba!")
-
-                    file.close()
+                self.__receive_data()
 
             except KeyboardInterrupt:
                 self.__desconnect_socket()
