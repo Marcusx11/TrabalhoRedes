@@ -54,7 +54,7 @@ class Server:
 
                 # Thread daemon é encerrada junto com a thread principal
                 ftp.daemon = True
-                ftp.run()
+                ftp.start()
 
             except KeyboardInterrupt:
                 self.server.close()
