@@ -4,6 +4,9 @@ import os
 import shutil
 from pathlib import Path
 import socket
+import tqdm
+
+BUFFER_SIZE = 1024
 
 
 class FTPThread(Thread):
@@ -26,10 +29,34 @@ class FTPThread(Thread):
             'HELP': self.__HELP,
         }
 
-    def __RETR(self, cmd: list):
+    def __RETR(self, cmd: str):
         """Obtém uma cópia do arquivo especificado (download para o cliente)."""
-        print('RETR')
-        self.client.sendall(b'RETR')
+        # Pegando-se caminho do arquivo
+        # file_size = os.path.getsize(dir_name)  # Pegando-se tamanho do arquivo
+
+        path = cmd.strip().split(" ")[0]
+        if not path:
+            self.client.sendall(b'Argumento faltando <pathname>')
+            return
+
+        dir_name = os.path.join(self.cwd, path)
+
+        try:
+            with open(dir_name, 'rb') as file:
+                data = file.read(BUFFER_SIZE)
+
+                while data:
+                    self.client.send(data)
+                    data = file.read(BUFFER_SIZE)
+                print('Transferencia completa')
+                self.client.send(b'Transferencia completa')
+
+        except FileNotFoundError:
+            print('arquivo n existe')
+            self.client.sendall(b'Arquivo nao encontrado')
+
+        except Exception as e:
+            self.client.sendall(str(e).encode())
 
     def __STOR(self, cmd: list):
         """Envia uma cópia do arquivo especificado (upload para o servidor)."""
