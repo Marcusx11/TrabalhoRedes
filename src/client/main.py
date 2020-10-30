@@ -48,17 +48,58 @@ class Client:
 
         self.server.sendall(cmd.encode())
 
-        with open(dir_name, 'wb') as file:
-            try:
-                while True:
-                    data = self.server.recv(BUFFER_SIZE)
-                    if not data:
-                        break
-                    file.write(data)
-                print('{} foi baixado com sucesso!'.format({path}))
+        response = self.server.recv(BUFFER_SIZE).decode().split(' ')
+        
+        if response[0] == 'error':
+            print(response[1])
+            return
+        else:
+            file_size = int(response[1])
+        
+        self.server.sendall(b'ok')
 
-            except Exception as e:
-                print('e', str(e))
+        try:
+            file = open(dir_name, 'wb')
+            download_size = 0
+            while download_size < file_size:
+                data = self.server.recv(BUFFER_SIZE)
+                download_size += len(data)
+                file.write(data)
+            file.close()
+
+            print('{} foi baixado com sucesso!'.format({path}))
+        except Exception as e:
+            print('e', str(e))
+
+    def __STOR(self, cmd: str):
+        try:
+            path = cmd.strip().split(" ")[1]
+            if not path:
+                print('Argumento faltando <pathname>')
+                return
+
+            dir_name = os.path.join(self.cwd, path)
+            if not os.path.isfile(dir_name):
+                print('Arquivo nao encontrado')
+                return
+
+            file_size = os.path.getsize(dir_name)
+            self.server.sendall((f'STOR {path} {file_size}').encode())
+            
+            response = self.server.recv(BUFFER_SIZE).decode()
+
+            if response == 'ok':
+                with open(dir_name, 'rb') as file:
+                    data = file.read(BUFFER_SIZE)
+                    while data:
+                        self.server.sendall(data)
+                        data = file.read(BUFFER_SIZE)
+
+        except FileNotFoundError:
+            print('Arquivo nao encontrado')
+        except Exception as e:
+           print(str(e))
+
 
     def run(self):
         self.__connect_socket()
@@ -75,6 +116,8 @@ class Client:
                     self.__desconnect_socket()
                 elif cmd_splited[0].upper() == 'RETR':
                     self.__RETR(cmd)
+                elif cmd_splited[0].upper() == 'STOR':
+                    self.__STOR(cmd)
 
                 # data = self.server.recv(1024)
 
