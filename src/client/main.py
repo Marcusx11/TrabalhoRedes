@@ -16,9 +16,12 @@ class Client:
             'GET': self.__RETR,
             'STOR': self.__STOR,
             'PUT': self.__STOR,
+            'LS': self.__SEND_REQUEST,
+            'NLST': self.__SEND_REQUEST,
             'LIST': self.__SEND_REQUEST,
             'LSL': self.__SEND_REQUEST,
             'HELP': self.__SEND_REQUEST,
+            '?': self.__SEND_REQUEST,
             'MKDIR': self.__SEND_REQUEST,
             'MKD': self.__SEND_REQUEST,
             'DELE': self.__SEND_REQUEST,
@@ -59,7 +62,7 @@ class Client:
         self.server.sendall(cmd.encode())
 
         response = self.server.recv(BUFFER_SIZE).decode().split(' ')
-        print(response)
+
         if response[0] == 'error':
             print(response[1])
             return
