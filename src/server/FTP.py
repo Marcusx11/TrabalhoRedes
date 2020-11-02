@@ -17,6 +17,7 @@ class FTPThread(Thread):
 
         self.COMMANDS = {
             'RETR': self.__RETR,
+            'GET': self.__RETR,
             'STOR': self.__STOR,
             'DELE': self.__DELE,
             'MKD': self.__MKD,
@@ -63,7 +64,6 @@ class FTPThread(Thread):
 
     def __STOR(self, cmd: list):
         """Envia uma cópia do arquivo especificado (upload para o servidor)."""
-
         parts = cmd.strip().split(" ")
 
         if not parts[1]:
@@ -175,26 +175,6 @@ class FTPThread(Thread):
         """
         print('HELP')
         self.client.sendall(b'HELP')
-
-    def __select_command(self, request: str):
-        COMMANDS = {
-            'RETR': self.__RETR,
-            'STOR': self.__STOR,
-            'DELE': self.__DELE,
-            'MKD': self.__MKD,
-            'MKDIR': self.__MKD,
-            'RMD': self.__RMD,
-            'NLST': self.__NLST,
-            'LIST': self.__LIST,
-            'QUIT': self.__QUIT,
-            'EXIT': self.__QUIT,
-            'HELP': self.__HELP,
-        }
-
-        # CMD <option>
-        cmd = request.split()[0].upper()
-        print(cmd)
-        COMMANDS[cmd](request)
 
     def run(self):
         while True:

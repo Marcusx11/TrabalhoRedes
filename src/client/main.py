@@ -14,6 +14,8 @@ class Client:
         self.COMMANDS = {
             'RETR': self.__RETR,
             'GET': self.__RETR,
+            'STOR': self.__STOR,
+            'PUT': self.__STOR,
         }
 
     def __connect_socket(self):
@@ -49,7 +51,7 @@ class Client:
         self.server.sendall(cmd.encode())
 
         response = self.server.recv(BUFFER_SIZE).decode().split(' ')
-        
+        print(response)
         if response[0] == 'error':
             print(response[1])
             return
@@ -67,7 +69,7 @@ class Client:
                 file.write(data)
             file.close()
 
-            print('{} foi baixado com sucesso!'.format({path}))
+            print('Arquivo baixado com sucesso!')
         except Exception as e:
             print('e', str(e))
 
@@ -94,12 +96,12 @@ class Client:
                     while data:
                         self.server.sendall(data)
                         data = file.read(BUFFER_SIZE)
+                print('Upload de arquivo feito com sucesso!')
 
         except FileNotFoundError:
             print('Arquivo nao encontrado')
         except Exception as e:
            print(str(e))
-
 
     def run(self):
         self.__connect_socket()
@@ -109,20 +111,14 @@ class Client:
                 cmd = input('> ')
                 cmd_splited = cmd.split(' ')
 
-                # self.server.sendall(cmd.encode())
-
-                print('cmd_splited', cmd_splited)
-                if cmd_splited[0].upper() == 'QUIT':
+                command = cmd_splited[0].upper()
+                if command == 'QUIT' or command == 'EXIT':
                     self.__desconnect_socket()
-                elif cmd_splited[0].upper() == 'RETR':
-                    self.__RETR(cmd)
-                elif cmd_splited[0].upper() == 'STOR':
-                    self.__STOR(cmd)
 
-                # data = self.server.recv(1024)
-
-                # if data:
-                    # print(str(data.decode('utf-8')))
+                if not command in self.COMMANDS:
+                    print('Comando invalido')
+                else:
+                    self.COMMANDS[command](cmd)
 
             except KeyboardInterrupt:
                 self.__desconnect_socket()
