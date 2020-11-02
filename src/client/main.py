@@ -16,6 +16,8 @@ class Client:
             'GET': self.__RETR,
             'STOR': self.__STOR,
             'PUT': self.__STOR,
+            'LIST': self.__LIST,
+            'LSL': self.__LIST,
         }
 
     def __connect_socket(self):
@@ -102,6 +104,14 @@ class Client:
             print('Arquivo nao encontrado')
         except Exception as e:
            print(str(e))
+
+    def __LIST(self, cmd: str):
+        
+        self.server.sendall(cmd.encode())
+        
+        response = self.server.recv(BUFFER_SIZE).decode()
+        
+        print(response)
 
     def run(self):
         self.__connect_socket()

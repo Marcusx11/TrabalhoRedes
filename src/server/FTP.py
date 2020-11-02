@@ -2,6 +2,7 @@ from threading import Thread
 import sys
 import os
 import shutil
+import subprocess
 from pathlib import Path
 import socket
 # import tqdm
@@ -147,7 +148,7 @@ class FTPThread(Thread):
     def __NLST(self, cmd: str):
         """Lista os nomes dos arquivos de um diretório."""
         path = ''
-        if cmd.split(" ") == 2:
+        if len(cmd.split(" ")) == 2:
             path = cmd.split(" ")[1]
 
         dirname = os.path.join(self.cwd, path)
@@ -160,20 +161,31 @@ class FTPThread(Thread):
         else:
             self.client.sendall('Diretório vazio'.encode('utf-8'))
 
-    def __LIST(self, cmd: list):
+    def __LIST(self, cmd: str):
         """
         Retorna informações* do arquivo ou diretório especificado 
         (* ex.: nome, tamanho, data de modificação, etc)
-        """
-        print('LIST')
-        self.client.sendall(b'LIST')
+        """   
 
-    def __QUIT(self, cmd: list):
+        path = ''
+        if len(cmd.split(" ")) == 2:
+            path = cmd.split(" ")[1]
+
+        path_file = os.path.join(self.cwd, path)
+
+        if not os.path.exists(path_file):
+            return self.client.sendall('error diretorio não encontrado ')
+        
+        response = subprocess.getstatusoutput(f'ls -l {path_file}')
+      
+        self.client.sendall(response[1].encode())
+
+    def __QUIT(self, cmd: str):
         """Desconecta"""
         print('QUIT')
         self.client.sendall(b'QUIT')
 
-    def __HELP(self, cmd: list):
+    def __HELP(self, cmd: str):
         """
         Retorna documentação de uso (de um comando específico, se 
         especificado; ou então um documento geral de ajuda).
