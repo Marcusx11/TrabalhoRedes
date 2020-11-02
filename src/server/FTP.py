@@ -5,7 +5,6 @@ import shutil
 import subprocess
 from pathlib import Path
 import socket
-# import tqdm
 
 BUFFER_SIZE = 1024
 
@@ -79,7 +78,7 @@ class FTPThread(Thread):
         if not parts[2]:
             self.client.sendall(b'Argumento faltando <filesize>')
             return
-        
+
         path = parts[1]
         dir_name = os.path.join(self.cwd, path)
         file_size = int(parts[2])
@@ -94,7 +93,7 @@ class FTPThread(Thread):
                 download_size += len(data)
                 file.write(data)
             file.close()
-            
+
             print('{} foi upado com sucesso!'.format({path}))
         except Exception as e:
             print('e', str(e))
@@ -163,9 +162,9 @@ class FTPThread(Thread):
 
     def __LIST(self, cmd: str):
         """
-        Retorna informações* do arquivo ou diretório especificado 
+        Retorna informações* do arquivo ou diretório especificado
         (* ex.: nome, tamanho, data de modificação, etc)
-        """   
+        """
 
         path = ''
         if len(cmd.split(" ")) == 2:
@@ -175,9 +174,9 @@ class FTPThread(Thread):
 
         if not os.path.exists(path_file):
             return self.client.sendall('error diretorio não encontrado ')
-        
+
         response = subprocess.getstatusoutput(f'ls -l {path_file}')
-      
+
         self.client.sendall(response[1].encode())
 
     def __QUIT(self, cmd: str):
@@ -187,11 +186,40 @@ class FTPThread(Thread):
 
     def __HELP(self, cmd: str):
         """
-        Retorna documentação de uso (de um comando específico, se 
+        Retorna documentação de uso (de um comando específico, se
         especificado; ou então um documento geral de ajuda).
         """
-        print('HELP')
-        self.client.sendall(b'HELP')
+
+        HELP = {
+            'RETR': 'RETR <pathname> -- Obtém uma cópia do arquivo especificado',
+            'get': 'Mesmo que RETR, apelido alternativo para o comando.',
+            'STOR': 'STOR <pathname -- Obtém uma cópia do arquivo especificado',
+            'put': 'Mesmo que STOR, apelido alternativo para o comando.',
+            'DELE': 'DELE <pathname> -- Apaga um arquivo do servidor.',
+            'rm': 'Mesmo que DELE, apelido alternativo para o comando.',
+            'MKD': 'MKD <dirname> -- Cria um novo diretório.',
+            'mkdir': 'Mesmo que MKD, apelido alternativo para o comando.',
+            'NLST': 'NLST <pathname> -- Lista os nomes dos arquivos de um diretório.',
+            'ls': 'Mesmo que NLST, apelido alternativo para o comando.',
+            'LIST': 'LIST <pathname> -- Retorna informações do arquivo ou diretório especificado.',
+            'QUIT': 'QUIT -- Encerra a conexão com o servidor.',
+            'exit': 'Mesmo que QUIT, apelido alternativo para o comando.',
+            'HELP': 'HELP <comando> -- Retorna documentação de uso (de um comando específico, se especificado; ou então um documento geral de ajuda).',
+            '?': '? -- O mesmo que HELP, apelido alternativo para o comando.',
+        }
+
+        command = None
+        if len(cmd.split(" ")) == 2:
+            command = cmd.split(" ")[1]
+
+        if command and command in HELP:
+            self.client.sendall(HELP[command].encode())
+        elif command and command not in HELP:
+            msg = '{} não é um comando válido.'.format(command)
+            self.client.sendall(msg.encode())
+        else:
+            all_help = "\n\n".join(HELP.values())
+            self.client.sendall(all_help.encode())
 
     def run(self):
         while True:
@@ -202,8 +230,6 @@ class FTPThread(Thread):
                     break
 
                 request_decoded = request.decode()
-
-                print("Comando: ", request)
 
                 cmd = request_decoded.split(" ")[0].upper()
                 print("Comando: ", cmd)
