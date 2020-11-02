@@ -19,15 +19,20 @@ class FTPThread(Thread):
             'RETR': self.__RETR,
             'GET': self.__RETR,
             'STOR': self.__STOR,
+            'PUT': self.__STOR,
             'DELE': self.__DELE,
+            'RM': self.__DELE,
             'MKD': self.__MKD,
             'MKDIR': self.__MKD,
             'RMD': self.__RMD,
             'NLST': self.__NLST,
+            'LS': self.__NLST,
             'LIST': self.__LIST,
+            'LSL': self.__LIST,
             'QUIT': self.__QUIT,
             'EXIT': self.__QUIT,
             'HELP': self.__HELP,
+            '?': self.__HELP,
         }
 
     def __RETR(self, cmd: str):
