@@ -38,8 +38,6 @@ python3 src/cliente/main.py
 |  DELE ou *rm*    | Apaga um arquivo   | 
 |  MKD ou *mkdir*  | Cria um diretório.   | 
 |  NLST ou *ls*    | Lista os nomes dos arquivos de um diretório.   | 
-|  NLST ou *ls*    | Lista os nomes dos arquivos de um diretório.   | 
-|  LIST ou *lsl*   | Retorna informações* do arquivo ou diretório especificado (* ex.: nome tamanho, data de modificação, etc)  | 
-|  QUIT ou *exit*  | Mesmo que QUIT, apelido alternativo para o comando.  | 
-Mesmo que LIST, apelido alternativo para o comando. |
+|  LIST ou *lsl*   | Retorna informações do arquivo ou diretório especificado (* ex.: nome tamanho, data de modificação, etc)  | 
+|  QUIT ou *exit*  | Encerra a conexão com servidor  | 
 |  HELP ou *?*  |Retorna documentação de uso (de um comando específico, se especificado; ou então um documento geral de ajuda). |
