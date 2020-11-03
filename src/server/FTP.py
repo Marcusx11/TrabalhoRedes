@@ -112,7 +112,6 @@ class FTPThread(Thread):
             return
         
         os.remove(dir_name)
-        self.client.sendall(dir_name.encode())
 
         self.client.sendall(b'Arquivo removido com sucesso!')
 
