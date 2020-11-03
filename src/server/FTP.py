@@ -100,8 +100,21 @@ class FTPThread(Thread):
 
     def __DELE(self, cmd: list):
         """Apaga um arquivo"""
-        print('DELE')
-        self.client.sendall(b'DELE')
+        parts = cmd.strip().split(" ")
+
+        if not parts[1]:
+            self.client.sendall(b'Argumento faltando <filename>')
+            return
+        
+        dir_name = os.path.join(self.cwd, parts[1])
+        if not os.path.isfile(dir_name):
+            self.client.sendall(b'error Arquivo nao encontrado')
+            return
+        
+        os.remove(dir_name)
+        self.client.sendall(dir_name.encode())
+
+        self.client.sendall(b'Arquivo removido com sucesso!')
 
     def __MKD(self, cmd: str):
         """Cria um diretório."""
