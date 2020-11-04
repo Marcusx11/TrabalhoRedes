@@ -9,7 +9,7 @@ class Client:
     def __init__(self, bind_ip='localhost', bind_port=80):
         self.bind_ip = bind_ip
         self.bind_port = bind_port
-        self.cwd = os.path.join(os.getcwd(), "storage")  # current working directory
+        self.cwd = os.path.join(os.getcwd(), "src/client/storage")  # current working directory
 
         self.COMMANDS = {
             'RETR': self.__RETR,

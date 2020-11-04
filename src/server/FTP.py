@@ -14,7 +14,7 @@ class FTPThread(Thread):
         super().__init__()
         self.client = client
         # current working directory
-        self.cwd = os.path.join(os.getcwd(), "storage")
+        self.cwd = os.path.join(os.getcwd(), "src/server/storage")
 
         self.COMMANDS = {
             'RETR': self.__RETR,
@@ -80,7 +80,7 @@ class FTPThread(Thread):
             self.client.sendall(b'Argumento faltando <filesize>')
             return
 
-        path = parts[1]
+        path = parts[1].split('/')[-1]
         dir_name = os.path.join(self.cwd, path)
         file_size = int(parts[2])
 
@@ -211,7 +211,7 @@ class FTPThread(Thread):
             'DELE': 'DELE <pathname> -- Apaga um arquivo do servidor.',
             'rm': 'rm -- Mesmo que DELE, apelido alternativo para o comando.',
             'MKD': 'MKD <dirname> -- Cria um novo diretório.',
-            'mkdir': 'mkdir == Mesmo que MKD, apelido alternativo para o comando.',
+            'mkdir': 'mkdir -- Mesmo que MKD, apelido alternativo para o comando.',
             'NLST': 'NLST <pathname> -- Lista os nomes dos arquivos de um diretório.',
             'ls': 'ls -- Mesmo que NLST, apelido alternativo para o comando.',
             'LIST': 'LIST <pathname> -- Retorna informações do arquivo ou diretório especificado.',
