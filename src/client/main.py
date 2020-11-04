@@ -53,6 +53,7 @@ class Client:
             return
 
         path = cmd_striped[1]
+        path_download = cmd_striped[1].split('/')[-1]
         dir_name = os.path.join(self.cwd, path)
 
         if os.path.exists(dir_name):
@@ -72,7 +73,7 @@ class Client:
         self.server.sendall(b'ok')
 
         try:
-            file = open(dir_name, 'wb')
+            file = open(os.path.join(self.cwd, path_download), 'wb')
             download_size = 0
             while download_size < file_size:
                 data = self.server.recv(BUFFER_SIZE)
