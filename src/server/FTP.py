@@ -13,7 +13,7 @@ class FTPThread(Thread):
     def __init__(self, client: socket.socket):
         super().__init__()
         self.client = client
-        self.cwd = os.getcwd() + '/src/server/storage/'  # current working directory
+        self.cwd = os.path.join(os.getcwd(), "storage")  # current working directory
 
         self.COMMANDS = {
             'RETR': self.__RETR,
@@ -50,7 +50,7 @@ class FTPThread(Thread):
                 return
 
             file_size = os.path.getsize(dir_name)
-            self.client.sendall((f'ok {file_size}').encode())
+            self.client.sendall(f'ok {file_size}'.encode())
 
             request = self.client.recv(BUFFER_SIZE).decode()
             if request == 'ok':
