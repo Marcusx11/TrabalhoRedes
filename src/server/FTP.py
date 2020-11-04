@@ -13,7 +13,8 @@ class FTPThread(Thread):
     def __init__(self, client: socket.socket):
         super().__init__()
         self.client = client
-        self.cwd = os.path.join(os.getcwd(), "storage")  # current working directory
+        # current working directory
+        self.cwd = os.path.join(os.getcwd(), "storage")
 
         self.COMMANDS = {
             'RETR': self.__RETR,
@@ -105,12 +106,12 @@ class FTPThread(Thread):
         if not parts[1]:
             self.client.sendall(b'Argumento faltando <filename>')
             return
-        
+
         dir_name = os.path.join(self.cwd, parts[1])
         if not os.path.isfile(dir_name):
             self.client.sendall(b'error Arquivo nao encontrado')
             return
-        
+
         os.remove(dir_name)
 
         self.client.sendall(b'Arquivo removido com sucesso!')
@@ -204,18 +205,18 @@ class FTPThread(Thread):
 
         HELP = {
             'RETR': 'RETR <pathname> -- Obtém uma cópia do arquivo especificado',
-            'get': 'Mesmo que RETR, apelido alternativo para o comando.',
-            'STOR': 'STOR <pathname -- Obtém uma cópia do arquivo especificado',
-            'put': 'Mesmo que STOR, apelido alternativo para o comando.',
+            'get': 'get -- Mesmo que RETR, apelido alternativo para o comando.',
+            'STOR': 'STOR <pathname -- Envia uma cópia do arquivo especificado (upload para o servidor).',
+            'put': 'put -- Mesmo que STOR, apelido alternativo para o comando.',
             'DELE': 'DELE <pathname> -- Apaga um arquivo do servidor.',
-            'rm': 'Mesmo que DELE, apelido alternativo para o comando.',
+            'rm': 'rm -- Mesmo que DELE, apelido alternativo para o comando.',
             'MKD': 'MKD <dirname> -- Cria um novo diretório.',
-            'mkdir': 'Mesmo que MKD, apelido alternativo para o comando.',
+            'mkdir': 'mkdir == Mesmo que MKD, apelido alternativo para o comando.',
             'NLST': 'NLST <pathname> -- Lista os nomes dos arquivos de um diretório.',
-            'ls': 'Mesmo que NLST, apelido alternativo para o comando.',
+            'ls': 'ls -- Mesmo que NLST, apelido alternativo para o comando.',
             'LIST': 'LIST <pathname> -- Retorna informações do arquivo ou diretório especificado.',
             'QUIT': 'QUIT -- Encerra a conexão com o servidor.',
-            'exit': 'Mesmo que QUIT, apelido alternativo para o comando.',
+            'exit': 'exit -- Mesmo que QUIT, apelido alternativo para o comando.',
             'HELP': 'HELP <comando> -- Retorna documentação de uso (de um comando específico, se especificado; ou então um documento geral de ajuda).',
             '?': '? -- O mesmo que HELP, apelido alternativo para o comando.',
         }
