@@ -65,7 +65,7 @@ class Client:
         response = self.server.recv(BUFFER_SIZE).decode().split(' ')
 
         if response[0] == 'error':
-            print(response[1])
+            print(' '.join(response[1:]))
             return
         else:
             file_size = int(response[1])

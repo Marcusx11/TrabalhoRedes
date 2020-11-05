@@ -61,7 +61,6 @@ class FTPThread(Thread):
                         self.client.sendall(data)
                         data = file.read(BUFFER_SIZE)
 
-                self.client.sendall(b'ok')
         except FileNotFoundError:
             print('arquivo n existe')
             self.client.sendall(b'Arquivo nao encontrado')
