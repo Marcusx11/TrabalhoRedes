@@ -72,16 +72,3 @@ python3 src/cliente/main.py
 |  QUIT ou *exit*  | Encerra a conexão com servidor  | 
 |  HELP ou *?*  |Retorna documentação de uso (de um comando específico, se especificado; ou então um documento geral de ajuda). |
 
-### Arquitetura
-##### Estrutura de pastas
-```
-src
-|  └───client
-|     └── storage
-│      main.py
-└───server
-|     └── storage
-│      main.py
-│      FTP.py
-```
-
