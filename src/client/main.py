@@ -9,7 +9,7 @@ class Client:
     def __init__(self, bind_ip='localhost', bind_port=80):
         self.bind_ip = bind_ip
         self.bind_port = bind_port
-        self.cwd = os.path.join(os.getcwd(), "storage")  # current working directory
+        self.cwd = os.path.join(os.getcwd(), "src/client/storage")  # current working directory
 
         self.COMMANDS = {
             'RETR': self.__RETR,
@@ -53,6 +53,7 @@ class Client:
             return
 
         path = cmd_striped[1]
+        path_download = cmd_striped[1].split('/')[-1]
         dir_name = os.path.join(self.cwd, path)
 
         if os.path.exists(dir_name):
@@ -64,7 +65,7 @@ class Client:
         response = self.server.recv(BUFFER_SIZE).decode().split(' ')
 
         if response[0] == 'error':
-            print(response[1])
+            print(' '.join(response[1:]))
             return
         else:
             file_size = int(response[1])
@@ -72,7 +73,7 @@ class Client:
         self.server.sendall(b'ok')
 
         try:
-            file = open(dir_name, 'wb')
+            file = open(os.path.join(self.cwd, path_download), 'wb')
             download_size = 0
             while download_size < file_size:
                 data = self.server.recv(BUFFER_SIZE)
